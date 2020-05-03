@@ -5,6 +5,7 @@ import os.path
 import sys
 import time
 import glob
+import webbrowser
 import http.cookiejar
 import tempfile
 import lz4.block
@@ -161,11 +162,15 @@ class Chrome:
         self.salt = b'saltysalt'
         self.iv = b' ' * 16
         self.length = 16
+
+        #  check  if install Chrome or Chromium in system 
+        chrome_name = "Chromium" if webbrowser._browsers.get('chromium-browser') else "Chrome"
+
         # domain name to filter cookies by
         self.domain_name = domain_name
         if sys.platform == 'darwin':
             # running Chrome on OSX
-            my_pass = keyring.get_password('Chrome Safe Storage', 'Chrome').encode(
+            my_pass = keyring.get_password('%s Safe Storage'%chrome_name, chrome_name).encode(
                 'utf8')  # get key from keyring
             iterations = 1003  # number of pbkdf2 iterations on mac
             self.key = PBKDF2(my_pass, self.salt,
@@ -176,7 +181,7 @@ class Chrome:
         elif sys.platform.startswith('linux'):
             # running Chrome on Linux
             # chrome linux is encrypted with the key peanuts
-            my_pass = get_linux_pass().encode('utf8')
+            my_pass = get_linux_pass(chrome_name).encode('utf8')
             iterations = 1
             self.key = PBKDF2(my_pass, self.salt,
                               iterations=iterations).read(self.length)
